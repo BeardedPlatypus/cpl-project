@@ -1,10 +1,11 @@
 module Main where
 
+import Item
 import Html exposing ( Html )
 import Signal
 
--- Name: 
--- Student ID: 
+-- Name: Martinus Wilhelmus Tegelaers
+-- Student ID: r0382389
 
 
 -- * Add a hotkey to toggle the visibility of 'done' items.
@@ -59,7 +60,5 @@ import Signal
 
 
 -- Start of program
-
 main : Signal Html.Html
-main = Html.text "This should work."
-       |> Signal.constant
+main = Signal.map Item.view Item.state 
