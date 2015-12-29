@@ -1,17 +1,20 @@
-module ItemState ( Model, init       -- Model
-                 , Action, update   -- Update
-                 , getNoAction
-                 , viewButtons       -- View
+module ItemState ( Model, init          -- Model
+                 , Action( NoAction     -- Update
+                         , ToggleDone
+                         , TogglePinned
+                         )
+                 , update
+                 , viewButtons          -- View
                  ) where
 
 
--- Imports
+---- Imports ----
 import Html exposing (..)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 
 
--- Model
+---- Model ----
 type alias Model =
   { is_pinned : Bool
   , is_done : Bool
@@ -23,24 +26,22 @@ init = { is_pinned = False
        , is_done = False }
 
 
--- Update
+---- Update ----
 type Action
   = TogglePinned
   | ToggleDone
   | NoAction
 
-getNoAction : Action
-getNoAction = NoAction
 
-update : Action -> Model -> Model 
+update : Action -> Model -> Model
 update action model =
   case action of
     TogglePinned -> { model | is_pinned <- not model.is_pinned }
-    ToggleDone -> { model | is_done <- not model.is_done }
-    NoAction -> model
+    ToggleDone   -> { model | is_done <- not model.is_done }
+    NoAction     -> model
 
 
--- View
+---- View ----
 viewButtons : Signal.Address Action -> Model -> List Html
 viewButtons address model =
   let
@@ -50,11 +51,3 @@ viewButtons address model =
       [ button [ onClick address TogglePinned ] [ text pin_text ]
       , button [ onClick address ToggleDone ] [ text done_text ]
       ]
-
-
--- State
-mailbox : Signal.Mailbox Action
-mailbox = Signal.mailbox NoAction
-
-state : Signal Model
-state = Signal.foldp update init mailbox.signal

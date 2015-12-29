@@ -1,12 +1,18 @@
-module ItemFeed ( Model, ID       -- Model
-                , Action, update  -- Update
-                , getNoAction
-                , view            -- View
+module ItemFeed ( Model, ID             -- Model
+                , Action( NoAction      -- Update
+                        , NextItem
+                        , PreviousItem
+                        , UpdateItem
+                        )
+                , update
+                , addReminder
+                , view                  -- View
                 ) where
 
 
 ---- Imports ----
 import Item
+import Reminder
 
 import Date exposing ( Date )
 import Html exposing ( Html )
@@ -15,6 +21,7 @@ import Html exposing ( Html )
 ---- Model ----
 type alias ID = Int
 type alias Model = { items : List (ID, Item.Item)
+                   , nextId : ID
                    , focus : ID
                    , sortComparison : ( Item.Item -> Item.Item -> Order )
                    }
@@ -26,9 +33,6 @@ type Action
   | PreviousItem
   | UpdateItem ID Item.Action
 
-
-getNoAction : Action
-getNoAction = NoAction
 
 update : Action -> Model -> Model
 update action model =
@@ -45,6 +49,14 @@ update action model =
             ( itemID, item )
       in
         { model | items <- List.map updateItem model.items }
+
+
+addReminder : Reminder.Model -> Model-> Model
+addReminder reminder_model model =
+  { model | items <- ( model.nextId,
+                       Item.initReminder reminder_model ) :: model.items
+          , nextId <- model.nextId + 1
+  }
 
 
 ---- View ----
@@ -68,18 +80,14 @@ viewSection address model is_done =
 
     -- Header tex
     header_text = if is_done then "Done" else "To do"
-
-    -- Filter only items that should be shown in section done | todo
-    filter_section = \( id, item ) -> ( is_done == ( Item.getState item ).is_done )
-    section_items = List.filter filter_section model.items
+    section_items = getOrderedSectionItems model is_done
   in
     if not ( List.isEmpty section_items ) then
       Just ( div
                -- Header
                [ div [ text header_text ]
                -- Items
-               , div ( List.map ( viewItem address )
-                     ( List.sortWith ( sortItemId model.sortComparison ) section_items ))
+               , div ( List.map ( viewItem address ) section_items )
                ]
            )
     else
@@ -109,3 +117,16 @@ viewItem address ( id, item ) =
 ---- Util ----
 sortItemId : (Item.Item -> Item.Item -> Order) -> (ID, Item.Item) -> (ID, Item.Item) -> Order
 sortItemId sortOrder ( id_a, item_a ) ( id_b, item_b ) = sortOrder item_a item_b
+
+getOrderedSectionItems : Model -> Bool -> List (ID, Item.Item)
+getOrderedSectionItems model is_done =
+  let
+    filter_section = \( id, item ) -> ( is_done == ( Item.getState item ).is_done )
+    section_items = List.filter filter_section model.items
+  in
+    if not ( List.isEmpty section_items ) then
+      List.sortWith ( sortItemId model.sortComparison ) section_items
+    else
+      []
+
+

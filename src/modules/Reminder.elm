@@ -2,11 +2,11 @@ module Reminder ( Model, Context, init -- Model
                 , viewBody             -- View
                 ) where
 
--- Imports
+---- Imports ----
 import Date exposing ( Date )
 import Html exposing ( Html )
 
--- Model
+---- Model ----
 type alias Model = { body : String
                    , date : Date
                    }
@@ -17,7 +17,8 @@ init : Model
 init = { body = "this is a body"
        , date = (Date.fromTime 1450706759.0 )}
 
--- View
+
+---- View ----
 viewBody : Model -> Html
 viewBody model =
   let

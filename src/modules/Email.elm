@@ -1,6 +1,9 @@
-module Email ( Model, Context, initContext           -- Model
-             , Action, updateContext, getNoAction   -- Update
-             , viewHeader, viewBody, viewDisplayAll  -- View
+module Email ( Model, Context, initContext            -- Model
+             , Action( NoAction                       -- Update
+                     , ToggleDisplayBody
+                     )
+             , updateContext
+             , viewHeader, viewBody, viewDisplayAll   -- View
              ) where
 
 -- Imports
@@ -33,8 +36,6 @@ initContext = False
 type Action = NoAction
             | ToggleDisplayBody
 
-getNoAction : Action
-getNoAction = NoAction
 
 updateContext : Action -> Context -> Context
 updateContext action context =

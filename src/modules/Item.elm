@@ -1,5 +1,9 @@
 module Item ( Item, initEmail, initReminder  -- Model
-            , Action, getNoAction, update
+            , Action( NoAction
+                    , UpdateItemState
+                    , UpdateEmailContext
+                    )
+            , update
             , view                           -- View
             , getState                       -- Util
             , sortOrderDefault, sortOrderOldTop
@@ -34,10 +38,6 @@ initReminder model =
 type Action = NoAction
             | UpdateItemState ItemState.Action
             | UpdateEmailContext Email.Action
-
-
-getNoAction : Action
-getNoAction = NoAction
 
 
 update : Action -> Item -> Item

@@ -1,8 +1,15 @@
-module ReminderInput ( Model, defaultModel           -- Model
-                     , Action, getNoAction, update   -- Update
-                     , view                          -- View
+module ReminderInput ( Model, defaultModel  -- Model
+                     , Action( NoAction     -- Update
+                             , AddReminder
+                             , UpdateBody
+                             , UpdateDate
+                             )
+                     , update
+                     , view                 -- View
                      ) where
 
+
+import Reminder
 
 import Html exposing ( Html
                      , Attribute
@@ -14,6 +21,7 @@ import Html.Attributes exposing ( type'
 import Html.Events exposing ( .. )
 import Json.Decode as Json
 
+import Date exposing ( Date )
 
 ---- Model ----
 type alias Model = { input_body : String
@@ -34,11 +42,7 @@ defaultModel =
 type Action = NoAction
             | UpdateBody String
             | UpdateDate String
-            | AddReminder
-
-
-getNoAction : Action
-getNoAction = NoAction
+            | AddReminder Reminder.Model
 
 
 update : Action -> Model -> Model
@@ -47,7 +51,7 @@ update action model =
     NoAction -> model
     UpdateBody body -> { model | input_body <- body }
     UpdateDate date -> { model | input_date <- date }
-    AddReminder -> defaultModel
+    AddReminder _ -> defaultModel
 
 
 ---- View ----
@@ -57,19 +61,27 @@ view address model =
     div = Html.div []
     input = Html.input
     button = Html.button
+    text = Html.text
+
+    reminder_model = { body = model.input_body
+                     , date = withDefault ( Date.fromTime 0 ) ( Date.fromString model.input_date )
+                     }
   in
-    div [ input [ type' "text"
-                , name "reminder-body"
-                , value model.input_body
-                , on "input" targetValue ( Signal.message address << UpdateBody )
-                , onEnter address AddReminder
-                ] []
-        , input [ type' "date"
-                , name "reminder-date"
-                , value model.input_date
-                , on "input" targetValue ( Signal.message address << UpdateDate )
-                ] []
-        , button [ onClick address AddReminder ] [ Html.text "Add" ]
+    div [ div [ text "Reminder" ]
+        , div [ input [ type' "text"
+                       , name "reminder-body"
+                       , value model.input_body
+                       , on "input" targetValue ( Signal.message address << UpdateBody )
+                       , onEnter address ( AddReminder reminder_model )
+                       ] []
+               , input [ type' "date"
+                       , name "reminder-date"
+                       , value model.input_date
+                       , on "input" targetValue ( Signal.message address << UpdateDate )
+                       ] []
+               , button [ onClick address ( AddReminder reminder_model )
+                        ] [ Html.text "Add" ]
+               ]
         ]
 
 withDefault : a -> Result x a -> a
