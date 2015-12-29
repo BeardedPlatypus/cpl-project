@@ -144,26 +144,25 @@ sortOrderDefault item_a item_b =
     item_a_state = getState item_a
     item_b_state = getState item_b
 
-    date_a = getDate item_a
-    date_b = getDate item_b
+    time_a = Date.toTime ( getDate item_a )
+    time_b = Date.toTime ( getDate item_b )
   in
-    if item_a_state.pinned && not item_b_state.pinned then
+    if item_a_state.is_pinned && not item_b_state.is_pinned then
       LT
-    else if item_b_state.pinned && not item_a_state.pinned then
+    else if item_b_state.is_pinned && not item_a_state.is_pinned then
       GT
-    else
-      case compare date_a date_b of
-        LT -> GT
-        EQ -> EQ
-        GT -> LT
+    else compare time_a time_b
 
 
 sortOrderOldTop : Item -> Item -> Order
 sortOrderOldTop item_a item_b =
   let
-    date_a = getDate item_a
-    date_b = getDate item_b
+    time_a = Date.toTime ( getDate item_a )
+    time_b = Date.toTime ( getDate item_b )
   in
-    compare date_a date_b
+    case compare time_a time_b of
+      LT -> GT
+      EQ -> EQ
+      GT -> LT
 
 
