@@ -17,11 +17,14 @@ import Html exposing ( Html
 import Html.Attributes exposing ( type'
                                 , value
                                 , name
+                                , class
                                 )
 import Html.Events exposing ( .. )
 import Json.Decode as Json
 
 import Date exposing ( Date )
+
+import Css
 
 ---- Model ----
 type alias Model = { input_body : String
@@ -58,31 +61,34 @@ update action model =
 view : Signal.Address Action -> Model -> Html
 view address model =
   let
-    div = Html.div []
-    input = Html.input
-    button = Html.button
-    text = Html.text
+    div = Html.div 
 
     reminder_model = { body = model.input_body
                      , date = withDefault ( Date.fromTime 0 ) ( Date.fromString model.input_date )
                      }
+
+    input_body = Css.textInput [ name "reminder-body"
+                               , value model.input_body
+                               , on "input" targetValue ( Signal.message address << UpdateBody )
+                               , onEnter address ( AddReminder reminder_model )
+                               ] []
+    input_date = Css.dateInput [ name "reminder-date"
+                               , value model.input_date
+                               , on "input" targetValue ( Signal.message address << UpdateDate )
+                               ] []
+    add_button = Css.button [ onClick address ( AddReminder reminder_model )
+                            ] [ Html.text "Add" ]
   in
-    div [ div [ text "Reminder" ]
-        , div [ input [ type' "text"
-                       , name "reminder-body"
-                       , value model.input_body
-                       , on "input" targetValue ( Signal.message address << UpdateBody )
-                       , onEnter address ( AddReminder reminder_model )
-                       ] []
-               , input [ type' "date"
-                       , name "reminder-date"
-                       , value model.input_date
-                       , on "input" targetValue ( Signal.message address << UpdateDate )
-                       ] []
-               , button [ onClick address ( AddReminder reminder_model )
-                        ] [ Html.text "Add" ]
-               ]
-        ]
+    Css.sectionApp
+         "Reminder"
+         [ Css.row_
+              [ div [ class "form-group" ] 
+                    [ div [ class "col-sm-9" ] [ input_body ]
+                    , div [ class "col-sm-2" ] [ input_date ]
+                    , div [ class "col-sm-1" ] [ add_button ]
+                    ]
+              ]
+         ]
 
 withDefault : a -> Result x a -> a
 withDefault default result =

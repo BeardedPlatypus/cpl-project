@@ -12,6 +12,9 @@ import String
 
 import Html exposing ( Html )
 import Html.Events exposing ( onClick )
+import Html.Attributes exposing ( class )
+
+import Css
 
 
 -- Constants
@@ -48,12 +51,16 @@ updateContext action context =
 viewHeader : Model -> Html
 viewHeader model =
   let
-    div = Html.div []
+    div = Html.div
     text = Html.text
   in
-    div [ text model.title, text " | "
-        , text model.from, text " says: "
-        ]
+    Css.row_ [ div [ class "col-sm-6" ] [ Css.h5 [ text model.title ] ]
+             , div [ class "col-sm-6" ] [ Css.h4 [ Html.small [] [ text model.from
+                                                                 , text " says: "
+                                                                 ]
+                                                 ]
+                                        ]
+             ]
 
 
 viewBody : Model -> Context -> Html
@@ -77,7 +84,7 @@ viewDisplayAll address model context =
       text = Html.text
       button = Html.button
     in
-      Just ( button [ onClick address ToggleDisplayBody ] [ text button_text ] )
+      Just ( Css.button [ onClick address ToggleDisplayBody ] [ text button_text ] )
   else
     Nothing
 

@@ -10,9 +10,10 @@ module ItemState ( Model, init          -- Model
 
 ---- Imports ----
 import Html exposing (..)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 
+import Css
 
 ---- Model ----
 type alias Model =
@@ -23,7 +24,8 @@ type alias Model =
 
 init : Model
 init = { is_pinned = False
-       , is_done = False }
+       , is_done = False
+       }
 
 
 ---- Update ----
@@ -42,12 +44,19 @@ update action model =
 
 
 ---- View ----
-viewButtons : Signal.Address Action -> Model -> List Html
+viewButtons : Signal.Address Action -> Model -> Html
 viewButtons address model =
   let
+    div = Html.div
+
     pin_text = if model.is_pinned then "Unpin" else "Pin"
     done_text = if model.is_done then "Undo" else "Mark as Done"
+
+    togglePinnedButton = Css.button [ onClick address TogglePinned ] [ text pin_text ]
+    toggleDoneButton =  Css.button [ onClick address ToggleDone ] [ text done_text ]
   in
-      [ button [ onClick address TogglePinned ] [ text pin_text ]
-      , button [ onClick address ToggleDone ] [ text done_text ]
-      ]
+    Css.row_ [ div [ class "form-group" ]
+                   [ div [ class "col-sm-6" ] [ togglePinnedButton ]
+                   , div [ class "col-sm-6" ] [ toggleDoneButton ]
+                   ]
+             ]

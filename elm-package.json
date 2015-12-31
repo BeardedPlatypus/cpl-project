@@ -4,8 +4,10 @@
     "repository": "https://github.com/USER/PROJECT.git",
     "license": "BSD3",
     "source-directories": [
-        ".",
-        "./modules"
+        "src",
+        "src/modules",
+        "src/actions",
+        "css"
     ],
     "exposed-modules": [],
     "dependencies": {

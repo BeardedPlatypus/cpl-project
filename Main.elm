@@ -8,7 +8,9 @@ import Item
 import ItemFeed
 import ReminderInput
 
-import ItemFeedApp
+import App
+import AppActions
+import KeyboardInput
 
 import Html exposing ( Html )
 
@@ -139,8 +141,9 @@ reminderModel2 = { body = "Groceries"
                  , date = withDefault (Date.fromTime 0 ) (Date.fromString "2015-09-25")
                  }
 
+
 itemList : List (ItemFeed.ID, Item.Item)
-itemList = [ ( 0, Item.initEmail emailModel1 )
+itemList = [ ( 0, Item.initEmail emailModel1) 
            , ( 1, Item.initEmail emailModel )
            , ( 2, Item.initReminder reminderModel1 )
            , ( 3, Item.initReminder reminderModel2 )
@@ -150,7 +153,7 @@ itemList = [ ( 0, Item.initEmail emailModel1 )
 itemFeedModel : ItemFeed.Model
 itemFeedModel = { items = itemList
                 , nextId = 4
-                , focus = 0
+                , focus = 2
                 , sortComparison = Item.sortOrderDefault
                 }
 {-
@@ -239,17 +242,18 @@ main = Signal.map view state
 
 itemFeedAppModel = { item_feed = itemFeedModel
                    , reminder_input = ReminderInput.defaultModel
+                   , keyboard_input = KeyboardInput.init
                    }
 
 
-mailbox : Signal.Mailbox ItemFeedApp.Action
-mailbox = Signal.mailbox ItemFeedApp.NoAction
+mailbox : Signal.Mailbox AppActions.Action
+mailbox = Signal.mailbox AppActions.NoAction
 
-state : Signal ItemFeedApp.Model
-state = Signal.foldp ItemFeedApp.update itemFeedAppModel mailbox.signal
+state : Signal App.Model
+state = Signal.foldp App.update itemFeedAppModel (Signal.merge mailbox.signal KeyboardInput.keyboardSignal )
 
-view : ItemFeedApp.Model -> Html
-view model = ItemFeedApp.view mailbox.address model
+view : App.Model -> Html
+view model = App.view mailbox.address model
 
 
 main : Signal Html.Html

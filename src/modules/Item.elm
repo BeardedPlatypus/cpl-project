@@ -17,7 +17,9 @@ import ItemState
 
 import Date exposing ( Date )
 import Html exposing ( Html )
+import Html.Attributes exposing ( class )
 
+import Css
 
 ---- Model ----
 type Item = EmailItem ItemState.Model Email.Context Email.Model
@@ -25,13 +27,11 @@ type Item = EmailItem ItemState.Model Email.Context Email.Model
 
 
 initEmail : Email.Model -> Item
-initEmail model =
-  EmailItem ItemState.init Email.initContext model
+initEmail model = EmailItem ItemState.init Email.initContext model
 
 
 initReminder : Reminder.Model -> Item
-initReminder model =
-  ReminderItem ItemState.init {} model
+initReminder model = ReminderItem ItemState.init {} model
 
 
 ---- Update ----
@@ -68,10 +68,11 @@ update action item =
 
 
 ---- View ----
-view : Signal.Address Action -> Item -> Html
-view address item =
+view : Signal.Address Action -> Bool -> Item -> Html
+view address has_focus item =
   let
-    div = Html.div []
+    div = Html.div
+    br = Html.br [] []
   in
     case item of
       -- Display a single Email Item
@@ -81,26 +82,33 @@ view address item =
           toggleBodyButton = viewEmailToggleButton address emailModel emailContext
 
           buttons = case toggleBodyButton of
-                      Just button -> button :: itemStateButtons
-                      Nothing -> itemStateButtons
+                      Just button -> ( div [] [ div [ class "button-section" ] [ button ]
+                                              , div [ class "button-section" ] [ itemStateButtons ]
+                                              ] )
+                      Nothing -> div [ class "button-section" ] [ itemStateButtons ]
         in
-          div [ Email.viewHeader emailModel            -- Header email
-              , Email.viewBody emailModel emailContext -- Body email
-              , div buttons                            -- Toggle buttons
-              , viewDate emailModel                    -- Date
-              ]
+          Css.panelEmail has_focus
+                         [ Email.viewHeader emailModel 
+                         ]
+                         [ Email.viewBody emailModel emailContext
+                         ]
+                         [ buttons                            -- Toggle buttons
+                         , viewDate emailModel                -- Date
+                         ]
     -- Display a single Reminder Item
       ReminderItem itemState reminderContext reminderModel ->
         let
-          itemStateButtons = viewItemStateButtons address itemState
+          itemStateButtons = div [ class "button-section" ]
+                                 [ viewItemStateButtons address itemState ]
         in
-          div [ Reminder.viewBody reminderModel    -- Reminder body
-              , div itemStateButtons               -- Toggle buttons
-              , viewDate reminderModel             -- Date
-              ]
+          Css.panelReminder has_focus
+                            [ Reminder.viewBody reminderModel ]  -- Reminder body
+                            [ itemStateButtons                   -- Toggle buttons
+                            , viewDate reminderModel             -- Date
+                            ]
 
 
-viewItemStateButtons : Signal.Address Action -> ItemState.Model -> List Html
+viewItemStateButtons : Signal.Address Action -> ItemState.Model -> Html
 viewItemStateButtons address model =
   ItemState.viewButtons ( Signal.forwardTo address UpdateItemState ) model
 
@@ -114,10 +122,11 @@ type alias HasDate a = { a | date : Date }
 viewDate : HasDate a -> Html
 viewDate { date } =
   let
-    div = Html.div []
+    div = Html.div 
     text = Html.text
   in
-    div [ text "date: ", text (( toString ( Date.year date ))  ++ " - " ++
+    div [ class "item-date" ]
+        [ text "date: ", text (( toString ( Date.year date ))  ++ " - " ++
                                ( toString ( Date.month date )) ++ " - " ++
                                ( toString ( Date.day date )))
         ]
@@ -151,7 +160,11 @@ sortOrderDefault item_a item_b =
       LT
     else if item_b_state.is_pinned && not item_a_state.is_pinned then
       GT
-    else compare time_a time_b
+    else
+      case compare time_a time_b of
+        LT -> GT
+        EQ -> EQ
+        GT -> LT
 
 
 sortOrderOldTop : Item -> Item -> Order
@@ -160,9 +173,4 @@ sortOrderOldTop item_a item_b =
     time_a = Date.toTime ( getDate item_a )
     time_b = Date.toTime ( getDate item_b )
   in
-    case compare time_a time_b of
-      LT -> GT
-      EQ -> EQ
-      GT -> LT
-
-
+    compare time_a time_b
