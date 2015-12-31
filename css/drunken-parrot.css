@@ -1558,7 +1558,7 @@ select[multiple].input-lg {
 }
 .navbar-inverse .navbar-nav > li > a {
   color: #b2c6cd;
-  font-family: "SourceSansProSemiBold", Helvetica, Arial, sans-serif;
+  font-family: "SourceSansPro", Helvetica, Arial, sans-serif;
   font-weight: 600;
 }
 .navbar-inverse .navbar-nav > .active > a,

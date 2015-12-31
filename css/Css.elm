@@ -21,13 +21,17 @@ orange = "#C77966"
 -- Containers
 header : List Html -> Html
 header elements =
-  Html.header [ ] elements
+  Html.header [ ]
+        [ Html.div [ class "apphead" ]
+                   [ container_ [ Html.div [ class "apphead-title" ] elements ] ]
+        ]
 
 body : List Html -> Html
 body elements =
   Html.body [ ] [ stylesheet "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"
                 , stylesheet "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
                 , script "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+                , stylesheetFont "https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300,600,700"
                 , stylesheet "css/drunken-parrot.css"
                 , stylesheet "css/itemfeed.css"
                 , container_ elements
@@ -159,6 +163,13 @@ stylesheet : String -> Html
 stylesheet href =
   node "link" [ Html.Attributes.rel "stylesheet"
               , Html.Attributes.href href
+              ] []
+
+stylesheetFont : String -> Html
+stylesheetFont href =
+  node "link" [ Html.Attributes.rel "stylesheet"
+              , Html.Attributes.href href
+              , Html.Attributes.type' "text/css"
               ] []
 
 script : String -> Html

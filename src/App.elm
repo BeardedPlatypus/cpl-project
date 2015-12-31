@@ -19,14 +19,21 @@ import Html.Events
 import Json.Decode as Json
 import Keyboard
 
----- Model ----
-type alias Model = { item_feed : ItemFeed.Model
+--------------------------------------------------------------------------------
+-- Model
+--------------------------------------------------------------------------------
+type alias Model = { -- Data
+                     item_feed : ItemFeed.Model
                    , reminder_input : ReminderInput.Model
                    , keyboard_input : KeyboardInput.Model
+                   -- View specific
+                   , view_reminder_input : Bool
                    }
 
 
----- Update ----
+--------------------------------------------------------------------------------
+-- Update
+--------------------------------------------------------------------------------
 update : Action -> Model -> Model
 update action model =
   case action of
@@ -46,24 +53,35 @@ update action model =
     UpdateKeyboardInput keyboard_action ->
       let
         keyboard_model = KeyboardInput.update keyboard_action model.keyboard_input
-        item_feed_actions = KeyboardInput.giveActions keyboard_action keyboard_model
-        item_feed_updated = List.foldl ItemFeed.update model.item_feed item_feed_actions
+        action_list = KeyboardInput.giveActions keyboard_action keyboard_model
+        updated_model = { model | keyboard_input <- keyboard_model }
       in
-        { model | keyboard_input <- keyboard_model
-                , item_feed <- item_feed_updated }
+        List.foldl update updated_model action_list
+    ToggleReminderInputView ->
+      { model | view_reminder_input <- not model.view_reminder_input }
 
 
+--------------------------------------------------------------------------------
 ---- View ----
+--------------------------------------------------------------------------------
 -- Main view
 view : Signal.Address Action -> Model -> Html
 view address model =
   let
     text = Html.text
+    small = Html.small []
+    item_feed = viewItemFeed address model.item_feed
+    section_elements = if model.view_reminder_input then
+                         [ item_feed
+                         , viewReminderInput address model.reminder_input
+                         ]
+                       else
+                         [ item_feed ]
   in
-    Css.body [ Css.header [ Css.h1 [ text "elm-TODO" ] ]
-             , Css.appContainer [ viewItemFeed address model.item_feed
-                                , viewReminderInput address model.reminder_input
-                                ]
+    Css.body [ Css.header [ text "elm-TODO"
+                          , small [ text "cpl project" ]
+                          ]
+             , Css.appContainer section_elements
              , Css.footer [ ]
              ]
 

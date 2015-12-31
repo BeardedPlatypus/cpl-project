@@ -155,6 +155,7 @@ itemFeedModel = { items = itemList
                 , nextId = 4
                 , focus = 2
                 , sortComparison = Item.sortOrderDefault
+                , done_visible = True
                 }
 {-
 view : Email.Context -> Html
@@ -243,6 +244,7 @@ main = Signal.map view state
 itemFeedAppModel = { item_feed = itemFeedModel
                    , reminder_input = ReminderInput.defaultModel
                    , keyboard_input = KeyboardInput.init
+                   , view_reminder_input = True
                    }
 
 

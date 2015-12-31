@@ -2,6 +2,7 @@ module ItemFeed ( Model, ID             -- Model
                 , Action( NoAction      -- Update
                         , NextItem
                         , PreviousItem
+                        , ToggleDoneVisibility
                         , SetSortComparison
                         , UpdateItem
                         , UpdateFocus
@@ -32,6 +33,7 @@ type alias Model = { items : List (ID, Item.Item)
                    , nextId : ID
                    , focus : Position
                    , sortComparison : ( Item.Item -> Item.Item -> Order )
+                   , done_visible : Bool
                    }
 
 --------------------------------------------------------------------------------
@@ -41,6 +43,7 @@ type Action
   = NoAction
   | NextItem
   | PreviousItem
+  | ToggleDoneVisibility
   | SetSortComparison ( Item.Item -> Item.Item -> Order )
   | UpdateItem ID Item.Action
   | UpdateFocus Item.Action
@@ -52,6 +55,7 @@ update action model =
     NoAction -> model
     NextItem -> changeFocus model Increment
     PreviousItem -> changeFocus model Decrement
+    ToggleDoneVisibility -> { model | done_visible <- not model.done_visible }
     SetSortComparison sortOrder -> { model | sortComparison <- sortOrder }
     UpdateItem id itemAction ->
       let
@@ -113,15 +117,25 @@ view address model =
     div = Html.div []
 
     todo_items_raw = getOrderedSectionItems model False
-    done_items_raw = getOrderedSectionItems model True
+
+    items_raw = if model.done_visible then
+                  let done_items_raw = getOrderedSectionItems model True
+                  in todo_items_raw ++ done_items_raw
+                else
+                  todo_items_raw
 
     n_todo = List.length todo_items_raw
-    ( _, todo_items, done_items ) = List.foldl ( foldFunc model n_todo ) (0, [], []) (todo_items_raw ++ done_items_raw)
+    ( _, todo_items, done_items ) = List.foldl ( foldFunc model n_todo ) (0, [], []) (items_raw)
 
     todo_section = viewSection address "To Do" ( List.reverse todo_items )
-    done_section = viewSection address "Done" ( List.reverse done_items )
+
+    sections = if model.done_visible then
+                 let done_section = viewSection address "Done" ( List.reverse done_items )
+                 in todo_section :: done_section :: []
+               else
+                 todo_section :: []
   in
-    Css.appSection (recursiveBuildView ( todo_section :: done_section :: [] ))
+    Css.appSection (recursiveBuildView ( sections ))
 
 type alias FoldResult = ( Int, List ( ID, Item.Item, Bool ), List ( ID, Item.Item, Bool ) )
 foldFunc : Model -> Int -> ( ID, Item.Item ) -> FoldResult -> FoldResult
